@@ -12,10 +12,9 @@ import software.amazon.awssdk.services.dynamodb.model.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Repository
-public class DynamoDbFileAnalysisRepository {
+public class DynamoDbFileAnalysisRepository implements FileAnalysisRepository {
     private static final String TABLE_NAME = "textana-file-analysis";
 
     private final DynamoDbClient dynamoDbClient;
@@ -24,21 +23,7 @@ public class DynamoDbFileAnalysisRepository {
         this.dynamoDbClient = dynamoDbClient;
     }
 
-    public Optional<FileAnalysisEntity> findByIdentifier(String fileIdentifier) {
-        GetItemRequest request = GetItemRequest.builder()
-                .tableName(TABLE_NAME)
-                .key(Map.of("uuid", AttributeValue.fromS(fileIdentifier)))
-                .build();
-
-        Map<String, AttributeValue> item = dynamoDbClient.getItem(request).item();
-
-        if (item == null || item.isEmpty()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(mapToEntity(item));
-    }
-
+    @Override
     public void saveAnalysis(SaveAnalysisItemRequest request) {
         Map<String, AttributeValue> item = new HashMap<>();
 
@@ -54,6 +39,7 @@ public class DynamoDbFileAnalysisRepository {
         dynamoDbClient.putItem(putItemRequest);
     }
 
+    @Override
     public void updateAnalysis(String uuid, String resume, EmotionDetectedEnum emotionDetected) {
         Map<String, AttributeValueUpdate> updates = new HashMap<>();
 
@@ -86,21 +72,21 @@ public class DynamoDbFileAnalysisRepository {
         dynamoDbClient.updateItem(request);
     }
 
-    private FileAnalysisEntity mapToEntity(Map<String, AttributeValue> item) {
-        AnalysisResultEntity result = null;
+    @Override
+    public void updateAnalysisStatus(String uuid, FileAnalysisStatusEnum status) {
+        Map<String, AttributeValueUpdate> updates = new HashMap<>();
 
-        if (item.containsKey("resume") && item.containsKey("emotionDetected")) {
-            result = AnalysisResultEntity.builder()
-                    .resume(item.get("resume").s())
-                    .emotionDetected(EmotionDetectedEnum.valueOf(item.get("emotionDetected").s()))
-                    .build();
-        }
+        updates.put("status", AttributeValueUpdate.builder()
+                .value(AttributeValue.fromS(status.name()))
+                .action(AttributeAction.PUT)
+                .build());
 
-        return FileAnalysisEntity.builder()
-                .uuid(item.get("uuid").s())
-                .status(FileAnalysisStatusEnum.valueOf(item.get("status").s()))
-                .result(result)
-                .lastStepAt(LocalDateTime.parse(item.get("lastStepAt").s()))
+        UpdateItemRequest request = UpdateItemRequest.builder()
+                .tableName(TABLE_NAME)
+                .key(Map.of("uuid", AttributeValue.fromS(uuid)))
+                .attributeUpdates(updates)
                 .build();
+
+        dynamoDbClient.updateItem(request);
     }
 }

@@ -1,9 +1,9 @@
 package com.lblandi.textana.fileprocessorservice.worker;
 
+import com.lblandi.textana.fileprocessorservice.enumerated.EmotionDetectedEnum;
 import com.lblandi.textana.fileprocessorservice.repository.DynamoDbFileAnalysisRepository;
 import com.lblandi.textana.fileprocessorservice.service.AiService;
 import com.lblandi.textana.fileprocessorservice.service.FileService;
-import com.lblandi.textana.fileprocessorservice.service.impl.OpenAiServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -23,10 +23,13 @@ public class FileProcessorWorker {
 
     public void process(String fileIdentifier) {
 
+        // Process file by analyzing its content
         String fileContent = fileService.getFileContent(fileIdentifier);
         String resumeText = aiService.resumeText(fileContent);
-        String sentiment = aiService.detectSentiment(resumeText);
+        EmotionDetectedEnum sentiment = aiService.detectSentiment(resumeText);
 
-        log.info("File '{}' has been processed", fileIdentifier);
+        // Update DynamoDB table with analysis results
+        fileAnalysisRepository.updateAnalysis(fileIdentifier, resumeText, sentiment);
+        log.info("Analysis completed for file: {}", fileIdentifier);
     }
 }

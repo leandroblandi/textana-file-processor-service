@@ -26,9 +26,7 @@
     <!-- Project properties-->
     <properties>
         <java.version>21</java.version>
-        <aws.s3.version>1.12.791</aws.s3.version>
-        <aws.sqs.version>3.1.0</aws.sqs.version>
-        <aws.dyndb.version>3.3.1</aws.dyndb.version>
+        <amazon.sdk.version>2.38.5</amazon.sdk.version>
         <spring.ai.openai.version>1.0.1</spring.ai.openai.version>
     </properties>
 
@@ -63,7 +61,6 @@
         </dependency>
 
         <!-- Spring Boot Starter AI OpenAI -->
-        <!-- https://mvnrepository.com/artifact/org.springframework.ai/spring-ai-starter-model-openai -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-openai</artifactId>
@@ -80,21 +77,21 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
-            <version>2.38.5</version>
+            <version>${amazon.sdk.version}</version>
         </dependency>
 
         <!-- Amazon AWS SDK DynamoDB -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>dynamodb</artifactId>
-            <version>2.38.5</version>
+            <version>${amazon.sdk.version}</version>
         </dependency>
 
         <!-- Spring Cloud AWS Starter SQS -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sqs</artifactId>
-            <version>2.38.5</version>
+            <version>${amazon.sdk.version}</version>
         </dependency>
 
 

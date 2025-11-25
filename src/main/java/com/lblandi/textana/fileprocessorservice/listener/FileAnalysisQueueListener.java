@@ -1,16 +1,15 @@
-package com.lblandi.textana.fileprocessorservice.service.impl;
+package com.lblandi.textana.fileprocessorservice.listener;
 
 import com.lblandi.textana.fileprocessorservice.enumerated.FileAnalysisStatusEnum;
 import com.lblandi.textana.fileprocessorservice.repository.DynamoDbFileAnalysisRepository;
 import com.lblandi.textana.fileprocessorservice.request.SaveAnalysisItemRequest;
-import com.lblandi.textana.fileprocessorservice.service.QueueService;
 import com.lblandi.textana.fileprocessorservice.worker.FileProcessorWorker;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -19,8 +18,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
-@Service
-public class SqsServiceImpl implements QueueService {
+@Component
+public class FileAnalysisQueueListener {
     public static final int MAX_NUMBER_MESSAGES_SQS = 10;
     public static final int WAIT_TIME_SECONDS_SQS = 10;
     public static final int VISIBILITY_TIMEOUT_SQS = 30;
@@ -32,13 +31,12 @@ public class SqsServiceImpl implements QueueService {
     @Value("${textana.aws.sqs.url}")
     private String queueUrl;
 
-    public SqsServiceImpl(SqsClient sqsClient, DynamoDbFileAnalysisRepository fileAnalysisRepository, FileProcessorWorker fileProcessorWorker) {
+    public FileAnalysisQueueListener(SqsClient sqsClient, DynamoDbFileAnalysisRepository fileAnalysisRepository, FileProcessorWorker fileProcessorWorker) {
         this.sqsClient = sqsClient;
         this.fileAnalysisRepository = fileAnalysisRepository;
         this.fileProcessorWorker = fileProcessorWorker;
     }
 
-    @Override
     @Scheduled(fixedDelay = 5000)
     public void listenNewMessages() {
         var request = ReceiveMessageRequest.builder()
